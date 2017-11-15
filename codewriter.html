@@ -1,291 +1,12 @@
+<script src="js/utils.js"></script>
+<script src="js/syntaxer-js.js"></script>
+<script src="js/program-generator.js"></script>
+<script src="js/program-runner.js"></script>
+<script src="js/program-scorer.js"></script>
 <script>
-var scope = {};
-var programString = "";
-var indentation = 0;
-var utils = {
-    randomFromArray: function (a) {
-        return a[Math.floor(Math.random() * a.length)];
-    },
-    randomFromObject: function (o) {
-        var objOwnPropArray = Object.keys(o);
-        return objOwnPropArray[Math.floor(Math.random() * objOwnPropArray.length)];
-    },
-    randomFromRange(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    },
-    indent: function(){
-        var spaces = "";
-        for(i = 0; i<indentation; i++){
-            spaces += "    ";
-        }
-        return spaces;
-    },
-};
-var statements = [
-    //if
-    function conditional (scope) {
-        programString += utils.indent() + "if (";
-
-        var condition = buildCondition(scope);
-        indentation++;
-        var code = getRandomStatements(scope);
-        indentation--;
-
-        ;;;//console.log(utils.indent() + "}");
-        programString += utils.indent() + "}\n";
-        return { condition, code };
-    },
-    //assign 
-    function assignment (scope) {
-        var variable = utils.randomFromObject(scope);
-        var value = utils.randomFromArray([
-            true,
-            false,
-            utils.randomFromObject(scope),
-        ]);
-        ;;;//console.log(utils.indent() + "var " + variable + " = " + value + ";");
-        programString += utils.indent() + variable + " = " + value + ";\n";
-        return {
-            variable: variable,
-            value: value,
-        };
-    },
-    //assign 
-    function assignment(scope) {
-        var variable = utils.randomFromObject(scope);
-        var value = utils.randomFromArray([
-            true,
-            false,
-            utils.randomFromObject(scope),
-        ]);
-
-        ;;;//console.log(utils.indent() + "var " + variable + " = " + value + ";");
-        programString += utils.indent() + variable + " = " + value + ";\n";
-        return {
-            variable: variable,
-            value: value,
-        };
-    },
-    //create 
-    function creation(scope) {
-        var variable = getStringName();
-        var value = utils.randomFromArray([
-            true,
-            false,
-            utils.randomFromObject(scope),
-        ]);
-        scope[variable] = value;
-        ;;;//console.log(utils.indent() + "var " + variable + " = " + value + ";");
-        programString += utils.indent() + "var " + variable + " = " + value + ";\n";
-        return {
-            variable: variable,
-            value: value,
-        };
-    },
-];
-var operators = ["equal", "greater", "less", "notEqual"];
-getRandomStatements = function (scope) {
-    var statementCount = utils.randomFromRange(1,3);
-    var pickedStatements = [];
-    for(var i = 1; i <= statementCount; i++){
-        pickedStatements.push(getRandomStatement(scope));
-    }
-    return pickedStatements;
-}
-getRandomStatement = function (scope) {
-    var pickedStatement = utils.randomFromArray(statements);
-    var statement = {};
-    statement[pickedStatement.name] = pickedStatement(scope);
-    return {statement: statement};
-}
-buildCondition = function (scope) {
-    var left = utils.randomFromObject(scope);
-    var operator = utils.randomFromArray(operators);
-    var right =  utils.randomFromArray([
-        utils.randomFromObject(scope),
-        utils.randomFromArray([true, false]),
-    ])
-
-
-    ;;;//console.log(utils.indent() + "if (" + left + " " + operator + " " + right + ") {");
-    programString += left + " " + operator + " " + right + ") {\n";
-    return {left, operator, right};
-}
-
-
-// brute-creates a string up to 2 dijits long (a to zz)
-var stringIterator = 0;
-var getStringName = function () {
-    var n = stringIterator;
-    var string = "";
-    var alpha = "abcdefghijklmnopqrstuvwxyz";
-    var divide = n / alpha.length;
-    var mod = n % alpha.length;
-    //console.log("d", divide, "m", mod);
-    if (divide >= 1) {
-        string = string + alpha[Math.floor(divide) - 1];
-    }
-    //console.log(1, string);
-    if (mod > 0) {
-        string = string + alpha[Math.floor(mod)];
-    } else if (mod == 0) {
-        string = string + "a";
-    }
-    //console.log(2, string);
-    stringIterator++;
-    return string;
-}
-
-    /*lowEnd = randomNumber();
-    highEnd = lowEnd + randomNumber();
-    complexity = [lowEnd, highEnd];
-    statements = chooseNumberOfStatements(complexity);
-    for(var i=0; i<=statements; i++){
-      code.push(getRandomStatement());
-    }
-    */
-
-
-
-
-runProgram = function (program){
-    var rounds = [
-        {
-            input: 0,
-            desiredOutput: 1,
-            score: 0,
-        },
-        {
-            input: 1,
-            desiredOutput: 0,
-            score: 0,
-        },
-    ];
-    for (round of rounds){
-        ;;;//console.group("Round");
-        round.scope = {
-            input: round.input,
-            output: null,
-        }
-        ;;;//console.log("input  : " + round.scope.input);
-        ;;;//console.log("desired: " + round.desiredOutput);
-        round.scope = runStatements(program, round.scope);
-
-        ;;;//console.log("output : " + round.scope.output);
-
-        if (round.scope.output == round.desiredOutput) {
-            ++round.score;
-        } else if (round.scope.output === null) {
-            ;;;//console.log("Output contained 'null'");
-            console.groupEnd("Round");
-            return rounds;
-        }
-        ;;;//console.groupEnd("Round");
-    }
-    return rounds;
-}
-
-runStatements = function(statementsArray, scope){
-    for (statementObj of statementsArray) {
-        //console.group("Statement");
-        statementObj = statementObj.statement;
-        scope = runStatement(statementObj, scope);
-        //console.groupEnd("Statement");
-    }
-    return scope;
-};
-
-runStatement = function(statement, scope){
-    if (statement.hasOwnProperty("conditional")) {
-        var rc = runCondition(statement.conditional, scope);
-        if(!rc){console.log("No Scope to pass.") ;;;debugger;}
-        return rc;
-    } else if (statement.hasOwnProperty("assignment")) {
-        var ra = runAssign(statement.assignment, scope);
-        if (!ra) { console.log("No Scope to pass.");;; debugger; }
-        return ra;
-    } else if (statement.hasOwnProperty("creation")) {
-        var rc = runCreate(statement.creation, scope);
-        if (!rc) { console.log("No Scope to pass.");;; debugger; }
-        return rc;
-    } else {
-        console.log("Statement object does not direclty contain statement properties.");
-        ;;;debugger;
-    }
-};
-
-runCondition = function (conditional, s){
-    var rs;
-    if(conditional.condition.operator == "equal") {
-        if(s[conditional.condition.left] == s[conditional.condition.right]) {
-            rs = runStatements(conditional.code, s);
-            return rs;
-        }
-    } else if(conditional.condition.operator == "greater") {
-        if (s[conditional.condition.left] > s[conditional.condition.right]) {
-            rs = runStatements(conditional.code, s);
-            return rs;
-        }
-    } else if(conditional.condition.operator == "less") {
-        if (s[conditional.condition.left] < s[conditional.condition.right]) {
-            rs = runStatements(conditional.code, s);
-            return rs;
-        }
-    } else if(conditional.condition.operator == "notEqual") {
-        if (s[conditional.condition.left] != s[conditional.condition.right]) {
-            rs = runStatements(conditional.code, s);
-            return rs;
-        }
-    } else {
-        console.log("error");
-        ;;;debugger;
-        throw new Error("Bad operator.");
-    }
-    // condition was false;
-    return s;
-};
-runAssign = function (assignment, s) {
-    if (!assignment) {
-        console.log("No assignment passed");
-        ;;; debugger;
-    }
-    if (!s) {
-        console.log("No scope passed");
-        ;;; debugger;
-    }
-    s[assignment.variable] = assignment.value;
-    return s;
-};
-runCreate = function (creation, s) {
-    if (!creation) {
-        console.log("No assignment passed");
-        ;;; debugger;
-    }
-    if (!s) {
-        console.log("No scope passed");
-        ;;; debugger;
-    }
-    s[creation.variable] = creation.value;
-    return s;
-};
-
-
 // while (runProgram() === null){
 //    discard program.
 // }
-
-scoreProgram = function(results) {
-    var totalScore = 0;
-    var i = 0;
-    for(round of results){
-        totalScore += round.score;
-        ;;;//console.log("Round " + ++i + ": " + round.score);
-    }
-    ;;;//console.log("Total  : " + totalScore);
-    return totalScore;
-};
-
-
 
 var test = [
     {
@@ -317,39 +38,33 @@ var test = [
         }
     }
 ];
-
 //console.log(test);
-
-
 var programsWritten = 0;
 var successfulPrograms = [];
-writeNewProgram = function() {
+programIteration = function() {
 
     //console.groupCollapsed("New Program");
 
     programsWritten++;
 
     ;;;//console.groupCollapsed("Program " + programsWritten);
-    scope.output = null;
-    scope.input = 0;
-    var program = getRandomStatements(scope);
+    var program = CodeWriter.programGenerator.buildProgram();
     ;;;//console.groupEnd("Program " + programsWritten);
 
-    ;;;//console.groupCollapsed("RunProgram");
-    var programResult = runProgram(program);
-    ;;;//console.groupEnd("RunProgram");
+    // ;;;//console.groupCollapsed("RunProgram");
+     var programResult = CodeWriter.programRunner.runProgram(program);
+    // ;;;//console.groupEnd("RunProgram");
 
-    ;;;//console.group("ScoreProgram");
-    var programScore = scoreProgram(programResult);
-    ;;;//console.groupEnd("ScoreProgram");
+    // ;;;//console.group("ScoreProgram");
+    var programScore = CodeWriter.programScorer.scoreProgram(programResult);
+    // ;;;//console.groupEnd("ScoreProgram");
 
-    //console.log("programsWritten: ", programsWritten);
     //console.groupEnd("New Program");
 
     // Program was not successful
     if(programScore < 2) {
-        var factor = 100;
-        var max = 100 * factor;
+        var factor = 100; // smaller numbers mean more throttling
+        var max = 10000;  // batch size. large batch sizes are prone to cause browser meltdown.
 
         // Finished generating programs.
         if (programsWritten >= max) {
@@ -361,34 +76,50 @@ writeNewProgram = function() {
         }
 
         // Pause execution every once in a while to throttle JS which helps browsers not to freeze
-        if ((programsWritten % (max / factor)) == 0) {
+        if ((programsWritten % (factor*10)) == 0) {
             console.log("Checkpoint " + programsWritten);
-            programString = "";
-            scope = {};
-            stringIterator = 0;
-            setTimeout(writeNewProgram, 2 * factor / 2);
+            CodeWriter.programGenerator.clear();
+            CodeWriter.syntaxerJs.clear();
+            setTimeout(programIteration, 500);
+        } else if ((programsWritten % factor) == 0) {
+            CodeWriter.programGenerator.clear();
+            CodeWriter.syntaxerJs.clear();
+            setTimeout(programIteration, 10);
         }
 
         // Reset and start new program.
         else { 
-            programString = "";
-            scope = {};
-            stringIterator = 0;
-            writeNewProgram();
+            CodeWriter.programGenerator.clear();
+            CodeWriter.syntaxerJs.clear();
+            programIteration();
         }
     }
 
     // Program was successful
     else {
         successfulPrograms.push({
-            program: programString,
+            program: CodeWriter.syntaxerJs.programString,
             results: programScore,
         });
         console.group("Program " + programsWritten);
-        console.log(programString);
+        console.log(CodeWriter.syntaxerJs.programString);
         console.groupEnd("Program " + programsWritten);
-        writeNewProgram();
+        programIteration();
     }
 }
-writeNewProgram();
+console.log('go');
+programIteration();
+
+
+
+    /*lowEnd = randomNumber();
+    highEnd = lowEnd + randomNumber();
+    complexity = [lowEnd, highEnd];
+    statements = chooseNumberOfStatements(complexity);
+    for(var i=0; i<=statements; i++){
+      code.push(getRandomStatement());
+    }
+    */
 </script>
+
+script running. view the browser console. 
