@@ -1,9 +1,3 @@
-<script src="js/utils.js"></script>
-<script src="js/syntaxer-js.js"></script>
-<script src="js/program-generator.js"></script>
-<script src="js/program-runner.js"></script>
-<script src="js/program-scorer.js"></script>
-<script src="js/generate-batch.js"></script>
 <script>
 // while (runProgram() === null){
 //    discard program.
@@ -42,8 +36,14 @@ var test = [
 //console.log(test);
 
 
+var worker = new Worker("js/generate-batch.js");
+worker.postMessage("hi, worker");
+worker.onmessage = function (e) {
+    console.log(e.data);
+};
 
-CodeWriter.generateBatch.programIteration();
+
+//CodeWriter.generateBatch.programIteration();
     /*lowEnd = randomNumber();
     highEnd = lowEnd + randomNumber();
     complexity = [lowEnd, highEnd];

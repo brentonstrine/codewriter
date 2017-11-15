@@ -1,4 +1,4 @@
-window.CodeWriter = window.CodeWriter || {};
+self.CodeWriter = self.CodeWriter || {};
 (function syntaxerJs (){
 
 var _programString = "";

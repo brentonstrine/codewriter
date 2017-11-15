@@ -1,4 +1,4 @@
-window.CodeWriter = window.CodeWriter || {};
+self.CodeWriter = self.CodeWriter || {};
 (function programScorer () {
     CodeWriter.programScorer = {
         scoreProgram: function (results) {

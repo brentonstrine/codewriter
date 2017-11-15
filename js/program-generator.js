@@ -1,4 +1,4 @@
-window.CodeWriter = window.CodeWriter || {};
+self.CodeWriter = self.CodeWriter || {};
 (function programGenerator () {
 
     var statements = ["conditional", "assignment", "creation"];
