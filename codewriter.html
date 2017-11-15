@@ -3,6 +3,7 @@
 <script src="js/program-generator.js"></script>
 <script src="js/program-runner.js"></script>
 <script src="js/program-scorer.js"></script>
+<script src="js/generate-batch.js"></script>
 <script>
 // while (runProgram() === null){
 //    discard program.
@@ -39,79 +40,10 @@ var test = [
     }
 ];
 //console.log(test);
-var programsWritten = 0;
-var successfulPrograms = [];
-programIteration = function() {
-
-    //console.groupCollapsed("New Program");
-
-    programsWritten++;
-
-    ;;;//console.groupCollapsed("Program " + programsWritten);
-    var program = CodeWriter.programGenerator.buildProgram();
-    ;;;//console.groupEnd("Program " + programsWritten);
-
-    // ;;;//console.groupCollapsed("RunProgram");
-     var programResult = CodeWriter.programRunner.runProgram(program);
-    // ;;;//console.groupEnd("RunProgram");
-
-    // ;;;//console.group("ScoreProgram");
-    var programScore = CodeWriter.programScorer.scoreProgram(programResult);
-    // ;;;//console.groupEnd("ScoreProgram");
-
-    //console.groupEnd("New Program");
-
-    // Program was not successful
-    if(programScore < 2) {
-        var factor = 100; // smaller numbers mean more throttling
-        var max = 10000;  // batch size. large batch sizes are prone to cause browser meltdown.
-
-        // Finished generating programs.
-        if (programsWritten >= max) {
-            console.log("Checkpoint " + programsWritten);
-            console.log(successfulPrograms);
-            console.log((100*(successfulPrograms.length/max)).toFixed(2) + "% of generated programs were successful.");
-            ;;;//debugger;
-            return;
-        }
-
-        // Pause execution every once in a while to throttle JS which helps browsers not to freeze
-        if ((programsWritten % (factor*10)) == 0) {
-            console.log("Checkpoint " + programsWritten);
-            CodeWriter.programGenerator.clear();
-            CodeWriter.syntaxerJs.clear();
-            setTimeout(programIteration, 500);
-        } else if ((programsWritten % factor) == 0) {
-            CodeWriter.programGenerator.clear();
-            CodeWriter.syntaxerJs.clear();
-            setTimeout(programIteration, 10);
-        }
-
-        // Reset and start new program.
-        else { 
-            CodeWriter.programGenerator.clear();
-            CodeWriter.syntaxerJs.clear();
-            programIteration();
-        }
-    }
-
-    // Program was successful
-    else {
-        successfulPrograms.push({
-            program: CodeWriter.syntaxerJs.programString,
-            results: programScore,
-        });
-        console.group("Program " + programsWritten);
-        console.log(CodeWriter.syntaxerJs.programString);
-        console.groupEnd("Program " + programsWritten);
-        programIteration();
-    }
-}
-console.log('go');
-programIteration();
 
 
 
+CodeWriter.generateBatch.programIteration();
     /*lowEnd = randomNumber();
     highEnd = lowEnd + randomNumber();
     complexity = [lowEnd, highEnd];
